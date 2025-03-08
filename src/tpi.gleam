@@ -1,5 +1,6 @@
 import argv
 import gleam/io
+import gleam/list
 import gleam/string
 import package_utilities
 import printer
@@ -21,7 +22,7 @@ pub fn main() {
 }
 
 fn print_version() {
-  io.println(printer.colorize(printer.Purple, "TPI v1.2.0"))
+  io.println(printer.colorize(printer.Purple, "The Package Index v1.2.0"))
 }
 
 fn print_usage() {
@@ -31,32 +32,28 @@ fn print_usage() {
   io.println(usage <> usage_args)
 }
 
-// it looks gross in code but good in terminal
-// shut up
 fn print_help() {
-  let commands =
-    string.concat([printer.colorize(printer.Green, "Commands:"), "\n"])
-  let install =
-    string.concat([
-      printer.colorize(printer.Purple, "  install     <package> "),
-      printer.colorize(printer.Green, "     Install a package"),
-      "\n",
-    ])
-  let uninstall =
-    string.concat([
-      printer.colorize(printer.Purple, "  uninstall   <package>"),
-      printer.colorize(printer.Green, "      Uninstall a package"),
-      "\n",
-    ])
-  let help =
-    string.concat([
-      printer.colorize(printer.Purple, "  help"),
-      printer.colorize(
-        printer.Green,
-        "                       Shows this screen",
-      ),
-      "\n",
-    ])
+  let commands = [
+    #("install", "   <package>", "Install a package"),
+    #("uninstall", " <package>", "Uninstall a package"),
+    #("help", "", "Shows this screen"),
+  ]
 
-  io.println(string.concat([commands, install, uninstall, help]))
+  let header = printer.colorize(printer.Green, "Commands:") <> "\n"
+  let formatted_commands =
+    commands
+    |> list.map(fn(cmd) {
+      let #(name, args, desc) = cmd
+      let command = string.pad_end(name <> " " <> args, 20, " ")
+      string.concat([
+        "  ",
+        printer.colorize(printer.Purple, command),
+        "  ",
+        printer.colorize(printer.Green, desc),
+        "\n",
+      ])
+    })
+    |> string.concat
+
+  io.println(header <> formatted_commands)
 }
