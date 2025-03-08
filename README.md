@@ -1,20 +1,9 @@
 # tpi
 
-[![Package Version](https://img.shields.io/hexpm/v/tpi)](https://hex.pm/packages/tpi)
-[![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/tpi/)
-
-```sh
-gleam add tpi@1
+## Installing
+```shell
+curl -fsSL https://raw.githubusercontent.com/gleemers/tpi/refs/heads/main/utilities/install.sh | bash
 ```
-```gleam
-import tpi
-
-pub fn main() {
-  // TODO: An example of the project in use
-}
-```
-
-Further documentation can be found at <https://hexdocs.pm/tpi>.
 
 ## Development
 
