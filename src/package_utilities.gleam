@@ -38,6 +38,10 @@ fn disk_install(path) {
     Ok(commands) -> commands
     Error(_) -> printer.tpi_panic("Package has no commands!")
   }
+  let _ = case package |> dict.get("uninstall") {
+    Ok(uninstall) -> uninstall
+    Error(_) -> printer.tpi_panic("Package has no uninstall instructions!")
+  }
 
   printer.info("Installing package: " <> package_name <> " ")
   printer.info("v" <> package_version)
@@ -68,6 +72,10 @@ fn fetch_install(url) {
   let commands = case package |> dict.get("commands") {
     Ok(commands) -> commands
     Error(_) -> printer.tpi_panic("Package has no commands!")
+  }
+  let _ = case package |> dict.get("uninstall") {
+    Ok(uninstall) -> uninstall
+    Error(_) -> printer.tpi_panic("Package has no uninstall instructions!")
   }
 
   printer.info("Installing package: " <> package_name <> " ")
@@ -102,5 +110,77 @@ fn fetch_package(package_url) {
 }
 
 pub fn uninstall_package(package) {
-  printer.info("Package: " <> package)
+  case package |> string.starts_with("http") {
+    True -> fetch_uninstall(package)
+    False -> disk_uninstall(package)
+  }
+}
+
+fn disk_uninstall(path) {
+  let contents = case simplifile.read(path) {
+    Ok(contents) -> contents
+    Error(_) -> printer.tpi_panic("Error reading file!")
+  }
+
+  let package = sorbet.parse(contents)
+  let package_name = case package |> dict.get("name") {
+    Ok(name) -> name
+    Error(_) -> printer.tpi_panic("Package has no name!")
+  }
+  let package_version = case package |> dict.get("version") {
+    Ok(version) -> version
+    Error(_) -> printer.tpi_panic("Package has no version!")
+  }
+  let author = case package |> dict.get("author") {
+    Ok(author) -> author
+    Error(_) -> printer.tpi_panic("Package has no author!")
+  }
+  let _ = case package |> dict.get("commands") {
+    Ok(commands) -> commands
+    Error(_) -> printer.tpi_panic("Package has no commands!")
+  }
+  let uninstall = case package |> dict.get("uninstall") {
+    Ok(uninstall) -> uninstall
+    Error(_) -> printer.tpi_panic("Package has no uninstall instructions!")
+  }
+
+  printer.info("Uninstalling package: " <> package_name <> " ")
+  printer.info("v" <> package_version)
+  printer.info("By: " <> author)
+  run_commands(uninstall |> string.split("\n"))
+}
+
+fn fetch_uninstall(url) {
+  printer.info("Downloading package...")
+  let contents = case fetch_package(url) {
+    Ok(contents) -> contents
+    Error(_) -> "ERROR_FETCHING_PKG"
+  }
+
+  let package = sorbet.parse(contents)
+  let package_name = case package |> dict.get("name") {
+    Ok(name) -> name
+    Error(_) -> printer.tpi_panic("Package has no name!")
+  }
+  let package_version = case package |> dict.get("version") {
+    Ok(version) -> version
+    Error(_) -> printer.tpi_panic("Package has no version!")
+  }
+  let author = case package |> dict.get("author") {
+    Ok(author) -> author
+    Error(_) -> printer.tpi_panic("Package has no author!")
+  }
+  let _ = case package |> dict.get("commands") {
+    Ok(commands) -> commands
+    Error(_) -> printer.tpi_panic("Package has no commands!")
+  }
+  let uninstall = case package |> dict.get("uninstall") {
+    Ok(uninstall) -> uninstall
+    Error(_) -> printer.tpi_panic("Package has no uninstall instructions!")
+  }
+
+  printer.info("Installing package: " <> package_name <> " ")
+  printer.info("v" <> package_version)
+  printer.info("By: " <> author)
+  run_commands(uninstall |> string.split("\n"))
 }
