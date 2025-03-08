@@ -1,4 +1,6 @@
 *.beam
 *.ez
+*.tar.gz
+*_bundle
 /build
 erl_crash.dump

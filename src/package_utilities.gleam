@@ -47,34 +47,34 @@ fn disk_install(path) {
 }
 
 fn fetch_install(url) {
+  printer.info("Downloading package...")
   let contents = case fetch_package(url) {
     Ok(contents) -> contents
     Error(_) -> "ERROR_FETCHING_PKG"
   }
 
-  io.println(contents)
-  // let package = sorbet.parse(contents)
-  // let package_name = case package |> dict.get("name") {
-  //   Ok(name) -> name
-  //   Error(_) -> panic as "Package has no name!"
-  // }
-  // let package_version = case package |> dict.get("version") {
-  //   Ok(version) -> version
-  //   Error(_) -> panic as "Package has no version!"
-  // }
-  // let author = case package |> dict.get("author") {
-  //   Ok(author) -> author
-  //   Error(_) -> panic as "Package has no author!"
-  // }
-  // let commands = case package |> dict.get("commands") {
-  //   Ok(commands) -> commands
-  //   Error(_) -> panic as "Package has no commands!"
-  // }
+  let package = sorbet.parse(contents)
+  let package_name = case package |> dict.get("name") {
+    Ok(name) -> name
+    Error(_) -> panic as "Package has no name!"
+  }
+  let package_version = case package |> dict.get("version") {
+    Ok(version) -> version
+    Error(_) -> panic as "Package has no version!"
+  }
+  let author = case package |> dict.get("author") {
+    Ok(author) -> author
+    Error(_) -> panic as "Package has no author!"
+  }
+  let commands = case package |> dict.get("commands") {
+    Ok(commands) -> commands
+    Error(_) -> panic as "Package has no commands!"
+  }
 
-  // io.print("Installing package: " <> package_name <> " ")
-  // io.println("v" <> package_version)
-  // io.println("By: " <> author)
-  // run_commands(commands |> string.split("\n"))
+  io.print("Installing package: " <> package_name <> " ")
+  io.println("v" <> package_version)
+  io.println("By: " <> author)
+  run_commands(commands |> string.split("\n"))
 }
 
 fn run_commands(commands) {
