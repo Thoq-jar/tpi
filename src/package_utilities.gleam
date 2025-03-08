@@ -9,9 +9,14 @@ import simplifile
 import sorbet
 
 pub fn install_package(package) {
-  case package |> string.starts_with("http") {
-    True -> fetch_install(package)
-    False -> disk_install(package)
+  let is_http = string.starts_with(package, "http")
+  let is_local =
+    string.starts_with(package, "./") || string.starts_with(package, "/")
+
+  case is_http, is_local {
+    True, _ -> fetch_install(package)
+    _, True -> disk_install(package)
+    _, _ -> gleepkg_install(package)
   }
 }
 
@@ -65,6 +70,12 @@ fn fetch_install(url) {
   printer.info("v" <> version)
   printer.info("By: " <> author)
   run_commands(commands |> string.split("\n"))
+}
+
+fn gleepkg_install(package) {
+  printer.info("Contacting gleepkg...")
+  let url = "https://gleepkg.deno.dev/" <> package <> ".srb"
+  fetch_install(url)
 }
 
 fn run_commands(commands) {
