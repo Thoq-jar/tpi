@@ -81,7 +81,11 @@ fn run_commands(commands) {
     [] -> Nil
     [command, ..rest] -> {
       printer.info("Running: " <> command)
-      printer.cmd(erl_wrapper.run_os_cmd(command))
+      let result = erl_wrapper.run_os_cmd(command)
+      case result != "" {
+        True -> printer.info(result)
+        False -> Nil
+      }
       run_commands(rest)
     }
   }
