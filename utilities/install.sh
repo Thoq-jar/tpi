@@ -31,11 +31,11 @@ echo "+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+"
 echo "Checking for existing $NAME installation..."
 if [ -d $INSTALL_DIR/$NAME ]; then
     echo "$NAME is already installed, checking for updates..."
-    rm -rf $INSTALL_DIR/$NAME
+    rm -rf $INSTALL_DIR/$NAME /tmp/$NAME
 fi
 
 echo "Downloading $NAME..."
-git clone https://github.com/gleemers/tpi.git /tmp/tpi
+git clone https://github.com/gleemers/tpi.git /tmp/$NAME
 
 cd /tmp/tpi
 
