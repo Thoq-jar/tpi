@@ -5,4 +5,4 @@ author => <your name here>
 license => MIT
 commands => echo 'Hello, world!'
           > echo 'This is an example package'
-          > echo ''
+uninstall => echo 'Uninstalling would happen here'
