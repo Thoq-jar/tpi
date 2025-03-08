@@ -2,7 +2,6 @@ import erl_wrapper
 import gleam/dict
 import gleam/http/request
 import gleam/httpc
-import gleam/io
 import gleam/result
 import gleam/string
 import printer
@@ -56,24 +55,24 @@ fn fetch_install(url) {
   let package = sorbet.parse(contents)
   let package_name = case package |> dict.get("name") {
     Ok(name) -> name
-    Error(_) -> panic as "Package has no name!"
+    Error(_) -> printer.tpi_panic("Package has no name!")
   }
   let package_version = case package |> dict.get("version") {
     Ok(version) -> version
-    Error(_) -> panic as "Package has no version!"
+    Error(_) -> printer.tpi_panic("Package has no version!")
   }
   let author = case package |> dict.get("author") {
     Ok(author) -> author
-    Error(_) -> panic as "Package has no author!"
+    Error(_) -> printer.tpi_panic("Package has no author!")
   }
   let commands = case package |> dict.get("commands") {
     Ok(commands) -> commands
-    Error(_) -> panic as "Package has no commands!"
+    Error(_) -> printer.tpi_panic("Package has no commands!")
   }
 
-  io.print("Installing package: " <> package_name <> " ")
-  io.println("v" <> package_version)
-  io.println("By: " <> author)
+  printer.info("Installing package: " <> package_name <> " ")
+  printer.info("v" <> package_version)
+  printer.info("By: " <> author)
   run_commands(commands |> string.split("\n"))
 }
 
