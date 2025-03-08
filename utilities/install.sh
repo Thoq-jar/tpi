@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set -e pipefail
 NAME="tpi"
 VERSION="1.1.0"
 INSTALL_DIR="$HOME/.local/bin"

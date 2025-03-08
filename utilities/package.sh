@@ -1,5 +1,6 @@
 #!/bin/bash
 
+set -e pipefail
 NAME="tpi"
 VERSION="1.1.0"
 BUNDLE_DIR="$NAME"_bundle
@@ -32,16 +33,10 @@ echo "Creating new bundle $BUNDLE_DIR..."
 mkdir -p $BUNDLE_DIR
 
 echo "Testing $NAME..."
-if ! gleam test > /dev/null; then
-    echo "Error: $NAME tests failed!"
-    exit 1
-fi
+gleam test
 
 echo "Building $NAME..."
-if ! gleam export erlang-shipment > /dev/null; then
-    echo "Error: Failed to build $NAME"
-    exit 1
-fi
+gleam export erlang-shipment
 
 echo "Creating $NAME/$INTERNAL_DIR..."
 mkdir -p $NAME/$INTERNAL_DIR
