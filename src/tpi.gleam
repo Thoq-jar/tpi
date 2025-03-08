@@ -37,6 +37,7 @@ fn print_help() {
     #("install", "   <package>", "Install a package"),
     #("uninstall", " <package>", "Uninstall a package"),
     #("help", "", "Shows this screen"),
+    #("version", "", "Shows version of cli"),
   ]
 
   let header = printer.colorize(printer.Green, "Commands:") <> "\n"
