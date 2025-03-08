@@ -1,6 +1,5 @@
 #!/bin/bash
 
-set -e pipefail
 NAME="tpi"
 VERSION="1.1.0"
 BUNDLE_DIR="$NAME"_bundle
