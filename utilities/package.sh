@@ -2,7 +2,7 @@
 
 set -e pipefail
 NAME="tpi"
-VERSION="1.1.0"
+VERSION="1.2.0"
 BUNDLE_DIR="$NAME"_bundle
 INTERNAL_DIR=_internal
 TARBALL="$NAME-$VERSION.tar.gz"

@@ -2,7 +2,7 @@
 
 set -e pipefail
 NAME="tpi"
-VERSION="1.1.0"
+VERSION="1.2.0"
 INSTALL_DIR="$HOME/.local/bin"
 AUTHOR="Thoq"
 DATE="MAR-8-2025"
@@ -39,13 +39,9 @@ cd /tmp/tpi
 
 echo "Building $NAME..."
 #################################################################
-NAME="tpi"
-VERSION="1.1.0"
 BUNDLE_DIR="$NAME"_bundle
 INTERNAL_DIR=_internal
 TARBALL="$NAME-$VERSION.tar.gz"
-AUTHOR="Thoq"
-DATE="MAR-8-2025"
 # This script is used to package the application for distribution.
 
 echo "Welcome to the $NAME bundler!"
