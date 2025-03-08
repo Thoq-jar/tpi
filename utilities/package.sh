@@ -53,7 +53,6 @@ mv build/erlang-shipment/ ./$NAME/$INTERNAL_DIR
 echo "Writing launcher..."
 cat << 'EOF' > ./$NAME/$NAME
 #!/bin/bash
-set -e pipefail
 $(dirname "$0")/_internal/erlang-shipment/entrypoint.sh run "$@"
 EOF
 

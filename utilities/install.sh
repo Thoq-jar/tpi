@@ -1,6 +1,5 @@
 #!/bin/bash
 
-set -e pipefail
 NAME="tpi"
 VERSION="1.1.0"
 INSTALL_DIR="$HOME/.local/bin"
@@ -28,6 +27,12 @@ sleep 3
 
 echo ""
 echo "+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+"
+
+echo "Checking for existing $NAME installation..."
+if [ -d $INSTALL_DIR/$NAME ]; then
+    echo "$NAME is already installed, checking for updates..."
+    rm -rf $INSTALL_DIR/$NAME
+fi
 
 echo "Downloading $NAME..."
 git clone https://github.com/gleemers/tpi.git /tmp/tpi
@@ -58,8 +63,10 @@ echo ""
 
 echo "Installation complete!"
 echo "To add to path run:"
-echo "export PATH=\$PATH:$INSTALL_DIR/$NAME"
+echo "=============================================================="
+echo "  export PATH=\$PATH:$INSTALL_DIR/$NAME/$NAME"
+echo "=============================================================="
 echo "Or add the above line to your shell profile. (e.g. ~/.bashrc, ~/.zshrc)"
-echo "To uninstall, simply remove the $INSTALL_DIR/$NAME directory."
+echo "To uninstall, simply remove the $INSTALL_DIR/$NAME/$NAME directory."
 
 echo "Thank you!"
