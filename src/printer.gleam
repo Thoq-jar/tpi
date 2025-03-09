@@ -13,7 +13,7 @@ pub fn tip(tip) {
 }
 
 pub fn info(message) {
-  io.println(colorize(Purple, "Info => ") <> message)
+  io.println(colorize(Purple, "TPI - Info => ") <> message)
 }
 
 pub fn cmd(message) {
@@ -21,15 +21,15 @@ pub fn cmd(message) {
 }
 
 pub fn warn(warning) {
-  io.println(colorize(Yellow, "Warn => ") <> warning)
+  io.println(colorize(Yellow, "TPI - Warn => ") <> warning)
 }
 
 pub fn err(error) {
-  io.println(colorize(Red, "Err => ") <> error)
+  io.println(colorize(Red, "TPI - Err => ") <> error)
 }
 
 pub fn sucess(message) {
-  io.println(colorize(Green, "Sucess: ") <> message)
+  io.println(colorize(Green, "TPI - Sucess: ") <> message)
 }
 
 pub fn tpi_panic(panic_msg) {

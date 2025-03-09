@@ -18,6 +18,8 @@ pub fn install_package(package) {
     _, True -> disk_install(package)
     _, _ -> gleepkg_install(package)
   }
+
+  printer.sucess("Installed package: " <> package <> "!")
 }
 
 fn parse_package(contents) {
@@ -82,7 +84,7 @@ fn run_commands(commands) {
   case commands {
     [] -> Nil
     [command, ..rest] -> {
-      printer.info("Running: " <> command)
+      printer.info("Running command: " <> command)
       let result = erl_wrapper.run_os_cmd(command)
       case result != "" {
         True -> printer.info(result)
