@@ -9,6 +9,7 @@ pub fn main() {
   case argv.load().arguments {
     ["install", package] -> package_utilities.install_package(package)
     ["uninstall", package] -> package_utilities.uninstall_package(package)
+    ["upgrade"] -> package_utilities.upgrade()
     ["help"] -> {
       print_usage()
       print_help()
@@ -36,6 +37,7 @@ fn print_help() {
   let commands = [
     #("install", "   <package>", "Install a package"),
     #("uninstall", " <package>", "Uninstall a package"),
+    #("upgrade", "", "Upgrade packages"),
     #("help", "", "Shows this screen"),
     #("version", "", "Shows version of cli"),
   ]

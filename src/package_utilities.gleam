@@ -2,11 +2,14 @@ import erl_wrapper
 import gleam/dict
 import gleam/http/request
 import gleam/httpc
+import gleam/list
 import gleam/result
 import gleam/string
 import printer
 import simplifile
 import sorbet
+
+pub const package_list = "/tmp/tpi_packages"
 
 pub fn install_package(package) {
   let is_http = string.starts_with(package, "http")
@@ -19,7 +22,59 @@ pub fn install_package(package) {
     _, _ -> gleepkg_install(package)
   }
 
+  let package_lists = case simplifile.read(package_list) {
+    Ok(contents) -> contents
+    Error(_) -> ""
+  }
+
+  case
+    package |> string.ends_with(".srb")
+    || package |> string.ends_with(".sorbet")
+  {
+    True -> Nil
+    False -> {
+      case package_lists |> string.contains(package) {
+        True -> Nil
+        False -> {
+          let new_contents = case package_lists {
+            "" -> package
+            _ -> package_lists <> "\n" <> package
+          }
+          case simplifile.write(package_list, new_contents <> "\n") {
+            Ok(_) -> Nil
+            Error(_) -> printer.tpi_panic("Failed to update package list!")
+          }
+        }
+      }
+    }
+  }
+
   printer.sucess("Installed package: " <> package <> "!")
+}
+
+pub fn upgrade() {
+  printer.info("Upgrading packages...")
+
+  let package_lists = case simplifile.read(package_list) {
+    Ok(contents) -> contents
+    Error(_) -> ""
+  }
+
+  upgrade_packages(package_lists |> string.split("\n"))
+  printer.sucess("Upgraded all packages!")
+}
+
+fn upgrade_packages(package_list) {
+  case package_list {
+    [] -> Nil
+    ["", ..rest] -> upgrade_packages(rest)
+    [package, ..rest] -> {
+      printer.info("Upgrading: " <> package)
+      install_package(package)
+      printer.sucess("Upgraded: " <> package <> "!")
+      upgrade_packages(rest)
+    }
+  }
 }
 
 fn parse_package(contents) {
@@ -106,10 +161,36 @@ fn fetch_package(package_url) {
 }
 
 pub fn uninstall_package(package) {
+  case
+    package |> string.ends_with(".srb")
+    || package |> string.ends_with(".sorbet")
+  {
+    True -> Nil
+    False -> {
+      let package_lists = case simplifile.read(package_list) {
+        Ok(contents) -> contents
+        Error(_) -> ""
+      }
+
+      let packages =
+        package_lists
+        |> string.split("\n")
+        |> list.filter(fn(p) { p != package })
+      let new_contents = packages |> string.join("\n")
+
+      case simplifile.write(package_list, new_contents <> "\n") {
+        Ok(_) -> Nil
+        Error(_) -> printer.tpi_panic("Failed to update package list!")
+      }
+    }
+  }
+
   case package |> string.starts_with("http") {
     True -> fetch_uninstall(package)
     False -> disk_uninstall(package)
   }
+
+  printer.sucess("Uninstalled package: " <> package <> "!")
 }
 
 fn disk_uninstall(path) {
