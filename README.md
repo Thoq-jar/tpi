@@ -4,7 +4,7 @@ A blazingly fast package manager.
 
 ## Installation
 ```shell
-curl -fsSL https://raw.githubusercontent.com/gleemers/tpi/refs/heads/main/.install/install.sh | sh
+curl -fsSL https://gleepkg.deno.dev/.tpi/install.sh | sh
 ```
 
 ## License
