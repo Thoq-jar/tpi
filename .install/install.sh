@@ -13,6 +13,7 @@ echo "+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+"
 echo "Welcome to the $NAME installer!"
 echo "Written by $AUTHOR on $DATE"
 echo "+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+"
+echo
 ### End Welcome Screen
 
 ### Download Portion Script
@@ -28,7 +29,7 @@ if [ -d $DOWNLOAD_DIR ]; then
     echo "[-] tpi already installed!"
     echo "[*] Updating tpi..."
     cd $DOWNLOAD_DIR
-    git pull
+    git pull > /dev/null
 else
     if [ ! -d $DOWNLOAD_DIR ]; then
         mkdir -p $DOWNLOAD_DIR
@@ -50,14 +51,15 @@ echo "[+] Installing tpi to $INSTALL_DIR"
 if [ ! -d $INSTALL_DIR ]; then
     mkdir -p $INSTALL_DIR
 fi
-mv $DOWNLOAD_DIR/target/release/tpi $INSTALL_DIR
+mv "$DOWNLOAD_DIR"target/release/tpi $INSTALL_DIR
 ### End Installation Portion
 
 ### Cleanup Portion
 echo "To add to path, run:"
 echo "==============================================="
-echo "  export PATH=\"$HOME/.local/bin:$PATH\""
+echo '  export PATH="$HOME/.local/bin:$PATH"'
 echo "==============================================="
+echo "Or to permanently add it, add the above command to your shell config (.zshrc, .bashrc, etc.)"
 echo
 echo "Thank you!"
 ### End Cleanup Portion
