@@ -1,11 +1,11 @@
 use anyhow::{Context, Result};
 use reqwest::blocking::Client;
+use sorbet_kvp::sorbet;
 use std::{
     fs::{self},
     process::Command,
 };
 use tempfile::tempdir;
-use sorbet_kvp::sorbet;
 
 use crate::printer;
 
@@ -23,7 +23,10 @@ pub fn install_package(package: &str) -> Result<()> {
 
     let package_lists = fs::read_to_string(PACKAGE_LIST).unwrap_or_default();
 
-    if !package.ends_with(".srb") && !package.ends_with(".sorbet") && !package_lists.contains(package) {
+    if !package.ends_with(".srb")
+        && !package.ends_with(".sorbet")
+        && !package_lists.contains(package)
+    {
         let new_contents = if package_lists.is_empty() {
             package.to_string()
         } else {
@@ -57,7 +60,7 @@ pub fn upgrade() -> Result<()> {
 
 fn parse_package(contents: &str) -> Result<(String, String, String, String, String)> {
     let package = sorbet::parse(contents.to_string());
-    
+
     let get_field = |field: &str| -> Result<String> {
         package
             .get(field)
@@ -77,7 +80,7 @@ fn parse_package(contents: &str) -> Result<(String, String, String, String, Stri
 fn disk_install(path: &str) -> Result<()> {
     let contents = fs::read_to_string(path).context("Error reading file!")?;
     let (name, version, author, commands, _) = parse_package(&contents)?;
-    
+
     printer::info(&format!("Installing package: {}", name));
     printer::info(&format!("v{}", version));
     printer::info(&format!("By: {}", author));
@@ -89,7 +92,7 @@ fn fetch_install(url: &str) -> Result<()> {
     printer::info("Downloading package...");
     let contents = fetch_package(url)?;
     let (name, version, author, commands, _) = parse_package(&contents)?;
-    
+
     printer::info(&format!("Installing package: {}", name));
     printer::info(&format!("v{}", version));
     printer::info(&format!("By: {}", author));
@@ -111,7 +114,7 @@ fn run_commands(commands: &str) -> Result<()> {
         if !line.is_empty() {
             for cmd in line.split(',').map(|s| s.trim()) {
                 if !cmd.is_empty() {
-                    printer::info(&format!("Running command: {}", cmd));
+                    printer::cmd(&format!("{}", cmd));
                     let output = Command::new("sh")
                         .arg("-c")
                         .arg(cmd)
@@ -134,18 +137,15 @@ fn fetch_package(package_url: &str) -> Result<String> {
         .get(package_url)
         .header("accept", "application/sorbet")
         .send()?;
-    
+
     Ok(response.text()?)
 }
 
 pub fn uninstall_package(package: &str) -> Result<()> {
     if !package.ends_with(".srb") && !package.ends_with(".sorbet") {
         let package_lists = fs::read_to_string(PACKAGE_LIST).unwrap_or_default();
-        let packages: Vec<&str> = package_lists
-            .lines()
-            .filter(|&p| p != package)
-            .collect();
-        
+        let packages: Vec<&str> = package_lists.lines().filter(|&p| p != package).collect();
+
         let new_contents = packages.join("\n");
         fs::write(PACKAGE_LIST, format!("{}\n", new_contents))
             .context("Failed to update package list!")?;
@@ -164,7 +164,7 @@ pub fn uninstall_package(package: &str) -> Result<()> {
 fn disk_uninstall(path: &str) -> Result<()> {
     let contents = fs::read_to_string(path).context("Error reading file!")?;
     let (name, version, author, _, uninstall) = parse_package(&contents)?;
-    
+
     printer::info(&format!("Uninstalling package: {}", name));
     printer::info(&format!("v{}", version));
     printer::info(&format!("By: {}", author));
@@ -176,7 +176,7 @@ fn fetch_uninstall(url: &str) -> Result<()> {
     printer::info("Downloading package...");
     let contents = fetch_package(url)?;
     let (name, version, author, _, uninstall) = parse_package(&contents)?;
-    
+
     printer::info(&format!("Uninstalling package: {}", name));
     printer::info(&format!("v{}", version));
     printer::info(&format!("By: {}", author));
