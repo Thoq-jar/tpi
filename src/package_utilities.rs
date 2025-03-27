@@ -58,7 +58,7 @@ pub fn upgrade() -> Result<()> {
     Ok(())
 }
 
-fn parse_package(contents: &str) -> Result<(String, String, String, String, String)> {
+fn parse_package(contents: &str) -> Result<(String, String, String, String, String, String)> {
     let package = sorbet::parse(contents.to_string());
 
     let get_field = |field: &str| -> Result<String> {
@@ -72,6 +72,7 @@ fn parse_package(contents: &str) -> Result<(String, String, String, String, Stri
         get_field("name")?,
         get_field("version")?,
         get_field("author")?,
+        get_field("deps")?,
         get_field("commands")?,
         get_field("uninstall")?,
     ))
@@ -79,11 +80,15 @@ fn parse_package(contents: &str) -> Result<(String, String, String, String, Stri
 
 fn disk_install(path: &str) -> Result<()> {
     let contents = fs::read_to_string(path).context("Error reading file!")?;
-    let (name, version, author, commands, _) = parse_package(&contents)?;
+    let (name, version, author, deps, commands, _) = parse_package(&contents)?;
+
+    printer::info(format!("Installing dependencies for {}...", name).as_str());
+    run_commands(&deps)?;
 
     printer::info(&format!("Installing package: {}", name));
     printer::info(&format!("v{}", version));
     printer::info(&format!("By: {}", author));
+    printer::info("Installing dependencies...");
     run_commands(&commands)?;
     Ok(())
 }
@@ -91,11 +96,15 @@ fn disk_install(path: &str) -> Result<()> {
 fn fetch_install(url: &str) -> Result<()> {
     printer::info("Downloading package...");
     let contents = fetch_package(url)?;
-    let (name, version, author, commands, _) = parse_package(&contents)?;
+    let (name, version, author, deps, commands, _) = parse_package(&contents)?;
+
+    printer::info(format!("Installing dependencies for {}...", name).as_str());
+    run_commands(&deps)?;
 
     printer::info(&format!("Installing package: {}", name));
     printer::info(&format!("v{}", version));
     printer::info(&format!("By: {}", author));
+
     run_commands(&commands)?;
     Ok(())
 }
@@ -163,7 +172,7 @@ pub fn uninstall_package(package: &str) -> Result<()> {
 
 fn disk_uninstall(path: &str) -> Result<()> {
     let contents = fs::read_to_string(path).context("Error reading file!")?;
-    let (name, version, author, _, uninstall) = parse_package(&contents)?;
+    let (name, version, author, _, _, uninstall) = parse_package(&contents)?;
 
     printer::info(&format!("Uninstalling package: {}", name));
     printer::info(&format!("v{}", version));
@@ -175,7 +184,7 @@ fn disk_uninstall(path: &str) -> Result<()> {
 fn fetch_uninstall(url: &str) -> Result<()> {
     printer::info("Downloading package...");
     let contents = fetch_package(url)?;
-    let (name, version, author, _, uninstall) = parse_package(&contents)?;
+    let (name, version, author, _, _, uninstall) = parse_package(&contents)?;
 
     printer::info(&format!("Uninstalling package: {}", name));
     printer::info(&format!("v{}", version));

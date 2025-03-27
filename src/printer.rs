@@ -10,23 +10,23 @@ pub enum Color {
 }
 
 pub fn tip(tip: &str) {
-    println!("{}{}", "Tip: ".purple(), tip);
+    println!("{}{}", "·Tip: ".purple(), tip);
 }
 
 pub fn info(message: &str) {
-    println!("{}{}", "TPI - Info => ".purple(), message);
+    println!("{}{}", "TPI·Info => ".purple(), message);
 }
 
 pub fn cmd(message: &str) {
-    println!("{}{}", "  Command => ".purple(), message);
+    println!("{}{}", "  ·Command => ".purple(), message);
 }
 
 pub fn err(error: &str) {
-    println!("{}{}", "TPI - Err => ".red(), error);
+    println!("{}{}", "TPI·Error => ".red(), error);
 }
 
 pub fn success(message: &str) {
-    println!("{}{}", "TPI - Success: ".green(), message);
+    println!("{}{}", "TPI·Success: ".green(), message);
 }
 
 pub fn colorize(color: Color, message: &str) -> String {
