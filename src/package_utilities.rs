@@ -23,10 +23,7 @@ pub fn install_package(package: &str) -> Result<()> {
 
     let package_lists = fs::read_to_string(PACKAGE_LIST).unwrap_or_default();
 
-    if !package.ends_with(".srb")
-        && !package.ends_with(".sorbet")
-        && !package_lists.contains(package)
-    {
+    if sorbet::check_file_extension(package.to_string()) && !package_lists.contains(package) {
         let new_contents = if package_lists.is_empty() {
             package.to_string()
         } else {
@@ -95,7 +92,17 @@ fn disk_install(path: &str) -> Result<()> {
 
 fn fetch_install(url: &str) -> Result<()> {
     printer::info("Downloading package...");
-    let contents = fetch_package(url)?;
+    let contents = {
+        let resp = fetch_package(url)?;
+        if resp.to_lowercase().contains("not found") {
+            printer::err("Package not found!");
+            printer::tip("If you're trying to install a local package, it must be prefixed with './' or '/'");
+            std::process::exit(1);
+        }
+
+        resp
+    };
+
     let (name, version, author, deps, commands, _) = parse_package(&contents)?;
 
     printer::info(format!("Installing dependencies for {}...", name).as_str());
