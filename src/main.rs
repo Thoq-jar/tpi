@@ -19,6 +19,7 @@ fn print_help() {
         ("install", "   <package>", "Install a package"),
         ("uninstall", " <package>", "Uninstall a package"),
         ("upgrade", "", "Upgrade packages"),
+        ("update", "", "Update TPI package manager"),
         ("help", "", "Shows this screen"),
         ("version", "", "Shows version of cli"),
     ];
@@ -61,6 +62,7 @@ fn main() {
                 })
         }
         Some("upgrade") => package_utilities::upgrade(),
+        Some("update") => Ok(update_tpi()),
         Some("help") => {
             print_usage();
             print_help();
@@ -80,5 +82,35 @@ fn main() {
     if let Err(e) = result {
         printer::err(&format!("{:#}", e));
         std::process::exit(1);
+    }
+}
+
+fn update_tpi() {
+    let output;
+
+    printer::info("Updating TPI, please wait...");
+
+    if cfg!(target_os = "windows") {
+        let command = r#"powershell -NoProfile -ExecutionPolicy Bypass -Command "[System.Text.Encoding]::UTF8.GetString((iwr -UseBasicParsing 'https://gleepkg.deno.dev/.tpi/install.ps1').Content) | iex""#;
+
+        output = std::process::Command::new("powershell.exe")
+            .arg("-Command")
+            .arg(command)
+            .output()
+            .expect("failed to execute update process");
+    } else {
+        let command = "curl -fsSL https://gleepkg.deno.dev/.tpi/install.sh | sh";
+
+        output = std::process::Command::new("sh")
+            .arg("-c")
+            .arg(command)
+            .output()
+            .expect("failed to execute update process");
+    }
+
+    if output.status.success() {
+        printer::success("TPI has been updated successfully!");
+    } else {
+        printer::err("Failed to update TPI!");
     }
 }
