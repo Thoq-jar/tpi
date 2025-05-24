@@ -7,7 +7,7 @@ license => MIT # NOTE: This example is not protected by MIT, just for an example
 unix_deps => echo 'Dependency commands here'
           > echo 'Another dependency'
 
-commands => echo 'Hello, world!'
+unix_commands => echo 'Hello, world!'
 
-uninstall => echo 'Uninstalling would happen here'
-           > echo 'Do not forget to uninstall any dependencies!'
+unix_uninstall => echo 'Uninstalling would happen here'
+                > echo 'Do not forget to uninstall any dependencies!'
