@@ -5,6 +5,7 @@ use std::{
     fs::{self},
     process::Command,
 };
+use std::process::Output;
 use tempfile::tempdir;
 
 use crate::printer;
@@ -17,11 +18,25 @@ pub fn get_package_list() -> String {
     }
 }
 
+pub fn ensure_package_dir() -> Result<()> {
+    let package_dir = if cfg!(target_os = "windows") {
+        r"C:\ProgramData\tpi"
+    } else {
+        "/var/lib/tpi"
+    };
+
+    fs::create_dir_all(package_dir)
+        .context("Failed to create package directory")?;
+
+    Ok(())
+}
+
 pub fn install_package(package: &str) -> Result<()> {
+    ensure_package_dir()?;
     let package_list = get_package_list();
 
     let is_http = package.starts_with("http");
-    let is_local = package.starts_with("./") || package.starts_with("/");
+    let is_local = package.starts_with("./") || package.starts_with(r".\") || package.starts_with("/");
 
     match (is_http, is_local) {
         (true, _) => fetch_install(package)?,
@@ -66,7 +81,7 @@ pub fn upgrade() -> Result<()> {
 
 fn parse_package(
     contents: &str,
-) -> Result<(String, String, String, String, String, String, String)> {
+) -> Result<(String, String, String, String, String, String)> {
     let package = sorbet::parse(contents.to_string());
 
     let get_field = |field: &str| -> Result<String> {
@@ -76,12 +91,17 @@ fn parse_package(
             .context(format!("Package has no {}!", field))
     };
 
+    let platform_deps = if cfg!(target_os = "windows") {
+        get_field("win_deps").context("Package not compatible with Windows")?
+    } else {
+        get_field("unix_deps").context("Package not compatible with Unix")?
+    };
+
     Ok((
         get_field("name")?,
         get_field("version")?,
         get_field("author")?,
-        get_field("unix_deps")?,
-        get_field("win_deps")?,
+        platform_deps,
         get_field("commands")?,
         get_field("uninstall")?,
     ))
@@ -89,14 +109,10 @@ fn parse_package(
 
 fn disk_install(path: &str) -> Result<()> {
     let contents = fs::read_to_string(path).context("Error reading file!")?;
-    let (name, version, author, unix_deps, win_deps, commands, _) = parse_package(&contents)?;
+    let (name, version, author, platform_deps, commands, _uninstall) = parse_package(&contents)?;
 
     printer::info(format!("Installing dependencies for {}...", name).as_str());
-    if cfg!(target_os = "windows") {
-        run_commands(&win_deps)?;
-    } else {
-        run_commands(&unix_deps)?;
-    }
+    run_commands(&platform_deps)?;
 
     printer::info(&format!("Installing package: {}", name));
     printer::info(&format!("v{}", version));
@@ -121,14 +137,10 @@ fn fetch_install(url: &str) -> Result<()> {
         resp
     };
 
-    let (name, version, author, unix_deps, win_deps, commands, _) = parse_package(&contents)?;
+    let (name, version, author, platform_deps, commands, _) = parse_package(&contents)?;
 
     printer::info(format!("Installing dependencies for {}...", name).as_str());
-    if cfg!(target_os = "windows") {
-        run_commands(&win_deps)?;
-    } else {
-        run_commands(&unix_deps)?;
-    }
+    run_commands(&platform_deps)?;
 
     printer::info(&format!("Installing package: {}", name));
     printer::info(&format!("v{}", version));
@@ -153,11 +165,21 @@ fn run_commands(commands: &str) -> Result<()> {
             for cmd in line.split(',').map(|s| s.trim()) {
                 if !cmd.is_empty() {
                     printer::cmd(&format!("{}", cmd));
-                    let output = Command::new("sh")
-                        .arg("-c")
-                        .arg(cmd)
-                        .output()
-                        .context("Failed to execute command")?;
+                    let output: Output;
+
+                    if cfg!(target_os = "windows") {
+                        output = Command::new("powershell")
+                            .arg("-Command")
+                            .arg(cmd)
+                            .output()
+                            .context("Failed to execute command")?;
+                    } else {
+                        output = Command::new("sh")
+                            .arg("-c")
+                            .arg(cmd)
+                            .output()
+                            .context("Failed to execute command")?;
+                    }
 
                     if !output.stdout.is_empty() {
                         printer::cmd(&String::from_utf8_lossy(&output.stdout));
@@ -202,7 +224,7 @@ pub fn uninstall_package(package: &str) -> Result<()> {
 
 fn disk_uninstall(path: &str) -> Result<()> {
     let contents = fs::read_to_string(path).context("Error reading file!")?;
-    let (name, version, author, _, _, _, uninstall) = parse_package(&contents)?;
+    let (name, version, author, _, _, uninstall) = parse_package(&contents)?;
 
     printer::info(&format!("Uninstalling package: {}", name));
     printer::info(&format!("v{}", version));
@@ -214,7 +236,7 @@ fn disk_uninstall(path: &str) -> Result<()> {
 fn fetch_uninstall(url: &str) -> Result<()> {
     printer::info("Downloading package...");
     let contents = fetch_package(url)?;
-    let (name, version, author, _, _, _, uninstall) = parse_package(&contents)?;
+    let (name, version, author, _, _, uninstall) = parse_package(&contents)?;
 
     printer::info(&format!("Uninstalling package: {}", name));
     printer::info(&format!("v{}", version));
