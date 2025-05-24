@@ -140,7 +140,7 @@ fn fetch_install(url: &str) -> Result<()> {
         if resp.to_lowercase().contains("not found") {
             printer::err("Package not found!");
             printer::tip(
-                "If you're trying to install a local package, it must be prefixed with './' or '/'",
+                r"If you're trying to install a local package, it must be prefixed with './', '.\' or '/'",
             );
             std::process::exit(1);
         }
