@@ -26,7 +26,7 @@ pub fn err(error: &str) {
 }
 
 pub fn success(message: &str) {
-    println!("{}{}", "TPI·Success: ".green(), message);
+    println!("{}{}", "TPI·Success => ".green(), message);
 }
 
 pub fn colorize(color: Color, message: &str) -> String {
