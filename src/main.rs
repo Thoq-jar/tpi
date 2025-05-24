@@ -5,7 +5,7 @@ use std::env;
 use printer::{Color, colorize};
 
 fn print_version() {
-    println!("{}", colorize(Color::Purple, "The Package Index v1.2.0"));
+    println!("{}", colorize(Color::Purple, format!("The Package Index v{}", env!("CARGO_PKG_VERSION")).as_str()));
 }
 
 fn print_usage() {
