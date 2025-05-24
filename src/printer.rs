@@ -22,7 +22,7 @@ pub fn cmd(message: &str) {
 }
 
 pub fn err(error: &str) {
-    println!("{}{}", "TPI·Error => ".red(), error);
+    println!("{}{}", "TPI·Fail => ".red(), error);
 }
 
 pub fn success(message: &str) {
