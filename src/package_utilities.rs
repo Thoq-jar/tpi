@@ -7,7 +7,6 @@ use std::{
 };
 use std::process::Output;
 use tempfile::tempdir;
-
 use crate::printer;
 
 pub fn get_package_list() -> String {
@@ -171,6 +170,8 @@ fn gleepkg_install(package: &str) -> Result<()> {
 fn run_commands(commands: &str) -> Result<()> {
     let temp_dir = tempdir()?;
     std::env::set_current_dir(&temp_dir)?;
+
+    printer::info(format!("Running commands in {}", temp_dir.path().display()).as_str());
 
     for line in commands.lines() {
         if !line.is_empty() {
