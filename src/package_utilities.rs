@@ -9,9 +9,17 @@ use tempfile::tempdir;
 
 use crate::printer;
 
-const PACKAGE_LIST: &str = "/tmp/tpi_packages";
+pub fn get_package_list() -> String {
+    if cfg!(target_os = "windows") {
+        String::from(r"C:\ProgramData\tpi\packages")
+    } else {
+        String::from("/var/lib/tpi/packages")
+    }
+}
 
 pub fn install_package(package: &str) -> Result<()> {
+    let package_list = get_package_list();
+
     let is_http = package.starts_with("http");
     let is_local = package.starts_with("./") || package.starts_with("/");
 
@@ -21,7 +29,7 @@ pub fn install_package(package: &str) -> Result<()> {
         _ => gleepkg_install(package)?,
     }
 
-    let package_lists = fs::read_to_string(PACKAGE_LIST).unwrap_or_default();
+    let package_lists = fs::read_to_string(&package_list).unwrap_or_default();
 
     if sorbet::check_file_extension(package.to_string()) && !package_lists.contains(package) {
         let new_contents = if package_lists.is_empty() {
@@ -29,7 +37,7 @@ pub fn install_package(package: &str) -> Result<()> {
         } else {
             format!("{}\n{}", package_lists.trim(), package)
         };
-        fs::write(PACKAGE_LIST, format!("{}\n", new_contents))
+        fs::write(&package_list, format!("{}\n", new_contents))
             .context("Failed to update package list!")?;
     }
 
@@ -40,7 +48,8 @@ pub fn install_package(package: &str) -> Result<()> {
 pub fn upgrade() -> Result<()> {
     printer::info("Upgrading packages...");
 
-    let package_lists = fs::read_to_string(PACKAGE_LIST).unwrap_or_default();
+    let package_list = get_package_list();
+    let package_lists = fs::read_to_string(&package_list).unwrap_or_default();
     let packages: Vec<&str> = package_lists.lines().collect();
 
     for package in packages {
@@ -55,7 +64,9 @@ pub fn upgrade() -> Result<()> {
     Ok(())
 }
 
-fn parse_package(contents: &str) -> Result<(String, String, String, String, String, String)> {
+fn parse_package(
+    contents: &str,
+) -> Result<(String, String, String, String, String, String, String)> {
     let package = sorbet::parse(contents.to_string());
 
     let get_field = |field: &str| -> Result<String> {
@@ -69,7 +80,8 @@ fn parse_package(contents: &str) -> Result<(String, String, String, String, Stri
         get_field("name")?,
         get_field("version")?,
         get_field("author")?,
-        get_field("deps")?,
+        get_field("unix_deps")?,
+        get_field("win_deps")?,
         get_field("commands")?,
         get_field("uninstall")?,
     ))
@@ -77,10 +89,14 @@ fn parse_package(contents: &str) -> Result<(String, String, String, String, Stri
 
 fn disk_install(path: &str) -> Result<()> {
     let contents = fs::read_to_string(path).context("Error reading file!")?;
-    let (name, version, author, deps, commands, _) = parse_package(&contents)?;
+    let (name, version, author, unix_deps, win_deps, commands, _) = parse_package(&contents)?;
 
     printer::info(format!("Installing dependencies for {}...", name).as_str());
-    run_commands(&deps)?;
+    if cfg!(target_os = "windows") {
+        run_commands(&win_deps)?;
+    } else {
+        run_commands(&unix_deps)?;
+    }
 
     printer::info(&format!("Installing package: {}", name));
     printer::info(&format!("v{}", version));
@@ -96,17 +112,23 @@ fn fetch_install(url: &str) -> Result<()> {
         let resp = fetch_package(url)?;
         if resp.to_lowercase().contains("not found") {
             printer::err("Package not found!");
-            printer::tip("If you're trying to install a local package, it must be prefixed with './' or '/'");
+            printer::tip(
+                "If you're trying to install a local package, it must be prefixed with './' or '/'",
+            );
             std::process::exit(1);
         }
 
         resp
     };
 
-    let (name, version, author, deps, commands, _) = parse_package(&contents)?;
+    let (name, version, author, unix_deps, win_deps, commands, _) = parse_package(&contents)?;
 
     printer::info(format!("Installing dependencies for {}...", name).as_str());
-    run_commands(&deps)?;
+    if cfg!(target_os = "windows") {
+        run_commands(&win_deps)?;
+    } else {
+        run_commands(&unix_deps)?;
+    }
 
     printer::info(&format!("Installing package: {}", name));
     printer::info(&format!("v{}", version));
@@ -159,11 +181,12 @@ fn fetch_package(package_url: &str) -> Result<String> {
 
 pub fn uninstall_package(package: &str) -> Result<()> {
     if !package.ends_with(".srb") && !package.ends_with(".sorbet") {
-        let package_lists = fs::read_to_string(PACKAGE_LIST).unwrap_or_default();
+        let package_list = get_package_list();
+        let package_lists = fs::read_to_string(&package_list).unwrap_or_default();
         let packages: Vec<&str> = package_lists.lines().filter(|&p| p != package).collect();
 
         let new_contents = packages.join("\n");
-        fs::write(PACKAGE_LIST, format!("{}\n", new_contents))
+        fs::write(&package_list, format!("{}\n", new_contents))
             .context("Failed to update package list!")?;
     }
 
@@ -179,7 +202,7 @@ pub fn uninstall_package(package: &str) -> Result<()> {
 
 fn disk_uninstall(path: &str) -> Result<()> {
     let contents = fs::read_to_string(path).context("Error reading file!")?;
-    let (name, version, author, _, _, uninstall) = parse_package(&contents)?;
+    let (name, version, author, _, _, _, uninstall) = parse_package(&contents)?;
 
     printer::info(&format!("Uninstalling package: {}", name));
     printer::info(&format!("v{}", version));
@@ -191,7 +214,7 @@ fn disk_uninstall(path: &str) -> Result<()> {
 fn fetch_uninstall(url: &str) -> Result<()> {
     printer::info("Downloading package...");
     let contents = fetch_package(url)?;
-    let (name, version, author, _, _, uninstall) = parse_package(&contents)?;
+    let (name, version, author, _, _, _, uninstall) = parse_package(&contents)?;
 
     printer::info(&format!("Uninstalling package: {}", name));
     printer::info(&format!("v{}", version));

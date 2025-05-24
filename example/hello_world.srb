@@ -2,10 +2,16 @@ name => hello_world
 version => 1.0.0
 description => An example package to get you started!
 author => <your name here>
-license => MIT
-deps => echo 'Dependency commands here'
-      > echo 'Another dependency'
+license => MIT # NOTE: This example is not protected by MIT, just for an example license
+
+unix_deps => echo 'Dependency commands here'
+           > echo 'Another dependency'
+
+win_deps => Write-Host 'Dependency commands here'
+          > Write-Host 'Another dependency'
+
 commands => echo 'Hello, world!'
           > echo 'This is an example package'
+
 uninstall => echo 'Uninstalling would happen here'
            > echo 'Dont forget to remove deps!'
