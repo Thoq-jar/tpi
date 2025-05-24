@@ -7,8 +7,8 @@ license => MIT # NOTE: This example is not protected by MIT, just for an example
 win_deps => Write-Host 'Dependency commands here'
           > Write-Host 'Another dependency'
 
-commands => Write-Host 'Hello, world!'
+win_commands => Write-Host 'Hello, world!'
 
-uninstall => Write-Host 'Uninstalling would happen here'
-           > Write-Host 'Do not forget to uninstall any dependencies!'
+win_uninstall => Write-Host 'Uninstalling would happen here'
+               > Write-Host 'Do not forget to uninstall any dependencies!'
 

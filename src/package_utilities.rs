@@ -97,13 +97,25 @@ fn parse_package(
         get_field("unix_deps").context("Package not compatible with Unix")?
     };
 
+    let platform_commands = if cfg!(target_os = "windows") {
+        get_field("win_commands").context("Package not compatible with Windows")?
+    } else {
+        get_field("unix_commands").context("Package not compatible with Unix")?
+    };
+
+    let platform_uninstall = if cfg!(target_os = "windows") {
+        get_field("win_uninstall").context("Package not compatible with Windows")?
+    } else {
+        get_field("unix_uninstall").context("Package not compatible with Unix")?
+    };
+
     Ok((
         get_field("name")?,
         get_field("version")?,
         get_field("author")?,
         platform_deps,
-        get_field("commands")?,
-        get_field("uninstall")?,
+        platform_commands,
+        platform_uninstall,
     ))
 }
 
